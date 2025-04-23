@@ -1,50 +1,38 @@
-# Welcome to your Expo app 👋
+# 🔥 Fire Detection Mobile App - React Native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ce projet est une application mobile développée en **React Native** dans le cadre du module **Programmation Mobile** du **Master IAII** à la FST Marrakech. L'application s'interface avec un robot équipé de capteurs pour la **détection précoce des incendies**, et utilise l'**IA pour analyser la scène**.
 
-## Get started
+## 👨‍💻 Membres de l'équipe
+- Laaliji Zakariae  
+- Hnioua Abdessamad  
+- Ouadoud Hamza
 
-1. Install dependencies
+## 🧠 Encadré par
+- M. Bourkoukou
 
-   ```bash
-   npm install
-   ```
+## 📱 Fonctionnalités de l'application
 
-2. Start the app
+- 📡 Réception des données en temps réel (température, humidité, gaz/fumée) via WiFi.
+- 🔔 Notifications instantanées en cas de détection de danger.
+- 📷 Accès au flux vidéo en direct de l’ESP32-CAM.
+- 🧠 Analyse des images via un modèle d’intelligence artificielle (hébergé dans le Cloud) pour :
+  - Détecter la présence humaine.
+  - Évaluer l'état des victimes.
+- 🧭 Interface utilisateur intuitive pour une réaction rapide et efficace.
 
-   ```bash
-    npx expo start
-   ```
+## ⚙️ Stack technologique
 
-In the output, you'll find options to open the app in a
+### Frontend
+- [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/)
+- [React Navigation](https://reactnavigation.org/)
+- [Axios](https://axios-http.com/) pour les requêtes HTTP
+- [Socket.IO client](https://socket.io/docs/v4/client-api/) (optionnel pour la communication en temps réel)
+- [React Native Paper](https://callstack.github.io/react-native-paper/) pour les composants UI
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Backend / IA
+- API Flask (hébergée sur Render ou autre)
+- Modèle CNN avec TensorFlow ou PyTorch pour la détection des victimes
+- Communication via HTTP/MQTT
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Base de données
+- [Firebase](https://firebase.google.com/) pour stocker les événements
