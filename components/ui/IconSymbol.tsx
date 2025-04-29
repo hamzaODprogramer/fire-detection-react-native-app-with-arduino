@@ -13,6 +13,8 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'history.fill':'history',
+  'online-prediction.fill':'online-prediction'
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

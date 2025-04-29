@@ -1,74 +1,183 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Text, View, Alert, Animated, Easing } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import RobotState from '@/components/home/RobotState';
+import CardState from '@/components/home/CardState';
+import CardButton from '@/components/home/CardButton';
 
 export default function HomeScreen() {
+  const [sensorValues, setSensorValues] = useState({
+    temperature: 82,
+    humidity: 82,
+    smoke: 82,
+    gas: 82
+  });
+
+  const thresholds = {
+    temperature: 75,  
+    humidity: 80,     
+    smoke: 30,        
+    gas: 50           
+  };
+
+  const blinkAnim = useRef(new Animated.Value(0)).current;
+  
+  const hasAlert = 
+    sensorValues.temperature > thresholds.temperature ||
+    sensorValues.humidity > thresholds.humidity ||
+    sensorValues.smoke > thresholds.smoke ||
+    sensorValues.gas > thresholds.gas;
+
+  useEffect(() => {
+    let blinkAnimation;
+    
+    if (hasAlert) {
+      blinkAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnim, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.linear,
+            useNativeDriver: false
+          }),
+          Animated.timing(blinkAnim, {
+            toValue: 0,
+            duration: 500,
+            easing: Easing.linear,
+            useNativeDriver: false
+          })
+        ])
+      );
+      
+      blinkAnimation.start();
+    } else {
+      blinkAnim.setValue(0);
+    }
+    
+    return () => {
+      if (blinkAnimation) {
+        blinkAnimation.stop();
+      }
+    };
+  }, [hasAlert]);
+
+  const animatedBackgroundColor = blinkAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['transparent', '#ff000080'] 
+  });
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <RobotState State={true} Battery={25} Connection={true}/>
+      
+      {hasAlert && (
+        <Animated.View style={[
+          styles.alertOverlay,
+          { backgroundColor: animatedBackgroundColor }
+        ]}>
+
+        </Animated.View>
+      )}
+      
+      <View style={styles.sensorGrid}>
+        <View style={styles.sensorRow}>
+          <CardState 
+            ElementSensorName='Temperature' 
+            Value={sensorValues.temperature + '°C'} 
+            State={sensorValues.temperature <= thresholds.temperature} 
+          />
+          <CardState 
+            ElementSensorName='Humidity' 
+            Value={sensorValues.humidity + '%'} 
+            State={sensorValues.humidity <= thresholds.humidity} 
+          />
+        </View>
+        <View style={styles.sensorRow}>
+          <CardState 
+            ElementSensorName='Smoke' 
+            Value={sensorValues.smoke + '%'} 
+            State={sensorValues.smoke <= thresholds.smoke} 
+          />
+          <CardState 
+            ElementSensorName='Gas' 
+            Value={sensorValues.gas + 'ppm'} 
+            State={sensorValues.gas <= thresholds.gas} 
+          />
+        </View>
+      </View>
+      
+      <View style={styles.buttonContainer}>
+        <CardButton color='#1E6091' text='View live camera'/>
+        <View style={styles.buttonRow}>
+          <CardButton style={styles.halfButton} color='#F28C38' text='Alerts history'/>
+          <CardButton style={styles.halfButton} color='#1E6091' text='AI analysis'/>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    padding: 16,
+    paddingTop: 24,
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  alertOverlay: {
     position: 'absolute',
+    top: -4,
+    left: -10,
+    right: -10,
+    bottom: 195,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    borderRadius: 16,
+    margin: 16,
+    padding:5
   },
+  alertText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    marginBottom: 20,
+  },
+  alertDetailText: {
+    fontSize: 18,
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    marginBottom: 10,
+  },
+  sensorGrid: {
+    marginTop: 24,
+    gap: 16,
+    zIndex: 1,
+  },
+  sensorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  buttonContainer: {
+    marginTop: 24,
+    zIndex: 1,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  halfButton: {
+    width: '48%',
+  },
+  emergencyButton: {
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: 'white',
+  }
 });

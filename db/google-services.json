@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563052078695",
+    "project_id": "fire-detection-arduino2",
+    "storage_bucket": "fire-detection-arduino2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563052078695:android:d9397597ad05089278d6c2",
+        "android_client_info": {
+          "package_name": "com.safigroupe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyTbto5iGPuAF-qJZckKzEekNDA4AByNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

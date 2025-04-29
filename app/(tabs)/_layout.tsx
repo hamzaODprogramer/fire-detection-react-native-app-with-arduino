@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -10,7 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
+  const pathname = usePathname();
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +20,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
@@ -30,14 +29,75 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarActiveTintColor: '#1E6091',
+          headerShown: true,
+          headerTitle: 'FireBot Guardian',  
+          headerStyle : {
+            backgroundColor: '#1E6091',
+            borderColor: '#1E6091',
+          },
+          headerTitleStyle : {
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={pathname == "/" ? `#1E6091` : color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="online"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          headerShown: true,
+          headerTitle: 'Live Camera',
+          headerStyle : {
+            backgroundColor: '#1E6091',
+            borderColor: '#1E6091',
+          },
+          headerTitleStyle : {
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          tabBarActiveTintColor: '#1E6091',
+          title: 'Online',
+          tabBarIcon: ({ color }) => (<IconSymbol size={28} name="online-prediction.fill" color={pathname == "/online" ? `#1E6091` : color} />),
+        }}
+      />
+      
+      <Tabs.Screen
+        name="historic"
+        options={{
+          headerShown:true,
+          headerStyle : {
+            backgroundColor: '#1E6091',
+            borderColor: '#1E6091',
+          },
+          headerTitleStyle : {
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          headerTitle: 'Alert history',
+          tabBarActiveTintColor: '#1E6091',
+          title: 'Historic',
+          tabBarIcon: ({ color }) => (<IconSymbol size={28} name="history.fill" color={pathname == "/historic" ? `#1E6091` : color} />),
+        }}
+      />
+      <Tabs.Screen
+        name="testFireBase"
+        options={{
+          headerShown:true,
+          headerStyle : {
+            backgroundColor: '#1E6091',
+            borderColor: '#1E6091',
+          },
+          headerTitleStyle : {
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          headerTitle: 'FireBase Test',
+          tabBarActiveTintColor: '#1E6091',
+          title: 'FireBase Test',
+          tabBarIcon: ({ color }) => (<IconSymbol size={28} name="history.fill" color={pathname == "/historic" ? `#1E6091` : color} />),
         }}
       />
     </Tabs>
