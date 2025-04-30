@@ -10,6 +10,10 @@ export default function Online() {
   const [isLoading, setIsLoading] = useState(true);
   const webViewRef = useRef(null);
 
+  const saveVideo = async () => {
+    const response = await fetch('http://192.168.1.106:3001/start_recording')
+  }
+
   const handleLoadEnd = () => {
     setIsLoading(false);
   };
@@ -41,11 +45,6 @@ export default function Online() {
               onLoadEnd={handleLoadEnd}
               onError={handleError}
             />
-            {isLoading && (
-              <View style={styles.loadingOverlay}>
-                <Text style={styles.loadingText}>Chargement en cours...</Text>
-              </View>
-            )}
             <View style={styles.overlayContainer}>
               <View style={styles.iaActiveLabel}>
                 <Text style={styles.iaActiveText}>IA ACTIVE</Text>
@@ -73,7 +72,7 @@ export default function Online() {
 
       <View style={styles.controlsContainer}>
         <ButtonFuncs icon="activity" text="Analyse IA" disabled={!isConnected} />
-        <ButtonFuncs icon="video" text="Record" disabled={!isConnected} />
+        <ButtonFuncs onPress={saveVideo} icon="video" text="Record" disabled={!isConnected} />
       </View>
 
       <View style={styles.statsContainer}>
