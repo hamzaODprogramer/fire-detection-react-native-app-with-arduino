@@ -28,17 +28,52 @@ const FLASK_SERVER_URL = 'http://192.168.100.184:5001';
 
 // Endpoint to start recording
 app.get("/start_recording", async (req, res) => {
-  try {
-    // Start recording
-    const response = await axios.post(`${FLASK_SERVER_URL}/start_recording`, {
-      duration: RECORDING_DURATION // Send the duration to Flask server
+  if (isRecording) {
+    return res.status(409).json({ 
+      error: true, 
+      message: "⚠️ Déjà en cours d'enregistrement, veuillez patienter..." 
     });
-    
-    res.json({ success: true, message: 'Recording started' });
-  } catch (error) {
-    console.error('Error starting recording:', error);
-    res.status(500).json({ success: false, message: 'Error starting recording' });
   }
+
+  isRecording = true;
+
+  const streamUrl = "https://865e-105-74-67-203.ngrok-free.app/stream";
+  const outputDir = path.join(__dirname, "recordings");
+  const outputPath = path.join(outputDir, "latest.mp4");
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
+
+  console.log("⏺️ Démarrage de l'enregistrement de 10 secondes...");
+
+  ffmpeg(streamUrl)
+    .inputFormat('mjpeg')
+    .duration(RECORDING_DURATION / 1000) // Convert to seconds
+    .outputOptions([
+      "-c:v libx264",
+      "-preset ultrafast",
+      "-pix_fmt yuv420p",
+      "-r 30", // Set frame rate to 30fps
+      "-g 30", // Set keyframe interval
+      "-b:v 2M", // Set video bitrate
+      "-maxrate 2M",
+      "-bufsize 1M"
+    ])
+    .on("end", () => {
+      console.log("✅ Enregistrement terminé.");
+      isRecording = false;
+    })
+    .on("error", (err) => {
+      console.error("❌ Erreur pendant l'enregistrement:", err.message);
+      isRecording = false;
+    })
+    .save(outputPath);
+
+  res.json({ 
+    success: true, 
+    message: `🎥 Enregistrement lancé pour ${RECORDING_DURATION/1000} secondes.` 
+  });
 });
 
 // New endpoint to analyze video
