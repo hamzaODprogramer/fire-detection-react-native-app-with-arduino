@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import RobotState from '@/components/home/RobotState';
 import CardState from '@/components/home/CardState';
 import CardButton from '@/components/home/CardButton';
+import { router } from 'expo-router';
 
 export default function HomeScreen() {
   const [sensorValues, setSensorValues] = useState({
@@ -106,10 +107,10 @@ export default function HomeScreen() {
       </View>
       
       <View style={styles.buttonContainer}>
-        <CardButton color='#1E6091' text='View live camera'/>
+        <CardButton onPress={() => router.replace('/online')} color='#1E6091' text='View live camera'/>
         <View style={styles.buttonRow}>
-          <CardButton style={styles.halfButton} color='#F28C38' text='Alerts history'/>
-          <CardButton style={styles.halfButton} color='#1E6091' text='AI analysis'/>
+          <CardButton onPress={() => router.replace('/historic')} style={styles.halfButton} color='#F28C38' text='Alerts history'/>
+          <CardButton onPress={() => router.replace('/online')} style={styles.halfButton} color='#1E6091' text='AI analysis'/>
         </View>
       </View>
     </View>

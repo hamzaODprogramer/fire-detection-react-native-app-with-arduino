@@ -4,6 +4,9 @@ import uuid
 import cv2
 from model import process_video
 import time
+from dotenv import load_dotenv
+load_dotenv() 
+port = os.getenv("FLASK_SERVER_PORT")
 
 app = Flask(__name__)
 
@@ -37,7 +40,7 @@ def handle_video():
     video_file.save(input_path)
     
     # Get video duration before processing
-    cap = cv2.VideoCapture(input_path)
+    cap = cv2.VideoCapture('recordings/latest.mp4')
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = frame_count / fps if fps > 0 else 0
@@ -45,9 +48,10 @@ def handle_video():
     
     # Process the video
     output_path = os.path.join(PROCESSED_FOLDER, f"{video_id}_processed.mp4")
-    process_video(input_path, output_path)
-    
+    status = process_video(input_path, output_path)
+    print("status : ",status)
     return jsonify({
+        "status" : status,
         "success": True,
         "video_id": video_id,
         "duration": duration
@@ -59,7 +63,14 @@ def get_handled_video(video_id):
     if not os.path.exists(video_path):
         return jsonify({"success": False, "message": "Video not found"}), 404
     
-    return send_file(video_path, mimetype='video/mp4')
+    # return send_file(video_path, mimetype='video/mp4')
+    return send_file(
+            video_path,
+            mimetype='video/mp4',
+            as_attachment=False,
+            conditional=True,
+            etag=True
+        )
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True) 
+    app.run(host='0.0.0.0', port=port, debug=True) 

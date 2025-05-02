@@ -6,10 +6,11 @@ interface CardButtonProps{
     color : string,
     className?: string,
     style?: any,
+    onPress?: () => void
 }
-export default function CardButton({text,color,className,style}:CardButtonProps){
+export default function CardButton({text,color,className,style,onPress}:CardButtonProps){
     return <>
-        <TouchableOpacity style={[{backgroundColor:color},style]} className={`${className} flex justify-center items-center gap-2 p-4 rounded-md`}>
+        <TouchableOpacity onPress={onPress} style={[{backgroundColor:color},style]} className={`${className} flex justify-center items-center gap-2 p-4 rounded-md`}>
             <Text style={{fontSize:18}} className="font-bold text-white">{text}</Text>
         </TouchableOpacity>
     </>

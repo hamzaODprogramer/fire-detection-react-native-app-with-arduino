@@ -5,9 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
+require('dotenv').config();
 
 const app = express();
-const port = 3001;
+const port = process.env.EXPRESS_SERVER_PORT || 5001;
 
 // Enable CORS
 app.use(cors({
@@ -22,11 +23,10 @@ let isRecording = false;
 let lastProcessedVideoId = null;
 
 // Configuration
-const RECORDING_DURATION = 10000; // 10 seconds recording
-const PROCESSING_INTERVAL = 2000; // 2 seconds processing interval
-const FLASK_SERVER_URL = 'http://192.168.100.184:5001';
+const RECORDING_DURATION = 4000; 
+const PROCESSING_INTERVAL = 2000; 
+const FLASK_SERVER_URL = process.env.SERVER_HANDLING_VIDEO_SERVICE_LINK;
 
-// Endpoint to start recording
 app.get("/start_recording", async (req, res) => {
   if (isRecording) {
     return res.status(409).json({ 
@@ -37,7 +37,7 @@ app.get("/start_recording", async (req, res) => {
 
   isRecording = true;
 
-  const streamUrl = "https://865e-105-74-67-203.ngrok-free.app/stream";
+  const streamUrl = process.env.CAMERA_ESP_LINK;
   const outputDir = path.join(__dirname, "recordings");
   const outputPath = path.join(outputDir, "latest.mp4");
 
@@ -96,7 +96,7 @@ app.get("/analyze_video", async (req, res) => {
     formData.append('video', fs.createReadStream(videoPath));
 
     // Send to Flask server
-    const response = await axios.post(`${FLASK_SERVER_URL}/handle_video`, formData, {
+    const response = await axios.post(`${'http://192.168.1.7:5001'}/handle_video`, formData, {
       headers: {
         ...formData.getHeaders()
       }
@@ -105,6 +105,7 @@ app.get("/analyze_video", async (req, res) => {
     if (response.data.success) {
       lastProcessedVideoId = response.data.video_id;
       res.json({
+        status:response.data.status,
         success: true,
         video_id: response.data.video_id,
         duration: response.data.duration
@@ -131,7 +132,7 @@ app.get("/get_analyzed_video", async (req, res) => {
   }
 
   try {
-    const response = await axios.get(`${FLASK_SERVER_URL}/get_handled_video/${lastProcessedVideoId}`, {
+    const response = await axios.get(`${'http://192.168.1.7:5001'}/get_handled_video/${lastProcessedVideoId}`, {
       responseType: 'stream'
     });
 

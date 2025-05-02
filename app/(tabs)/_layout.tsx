@@ -82,24 +82,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (<IconSymbol size={28} name="history.fill" color={pathname == "/historic" ? `#1E6091` : color} />),
         }}
       />
-      <Tabs.Screen
-        name="testFireBase"
-        options={{
-          headerShown:true,
-          headerStyle : {
-            backgroundColor: '#1E6091',
-            borderColor: '#1E6091',
-          },
-          headerTitleStyle : {
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-          },
-          headerTitle: 'FireBase Test',
-          tabBarActiveTintColor: '#1E6091',
-          title: 'FireBase Test',
-          tabBarIcon: ({ color }) => (<IconSymbol size={28} name="history.fill" color={pathname == "/historic" ? `#1E6091` : color} />),
-        }}
-      />
     </Tabs>
   );
 }
