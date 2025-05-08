@@ -9,6 +9,29 @@ interface HistoricRecord {
     createdAt?: string; 
 }
 
+interface SensorDataRecord {
+    temperature : string,
+    valeur_gaz : string,
+    humidite : string,
+    gaz_detecte : string
+}
+
+export const getSensorData =  async () => {
+    try{
+        const sensorRef = ref(db,'capteurs')
+        const snapshot = await get(sensorRef)
+        if(snapshot.exists()){
+            const sensorData = snapshot.val()
+            return { sensorData : sensorData as SensorDataRecord }
+        }else{
+            return { sensorData : null }
+        }
+    }catch(error){
+        console.error('Error adding project:', error);
+        return { error };
+    }
+}
+
 export const addHistoric = async (historic:HistoricRecord) => {
     try{
         const { userId } = await getUserId()

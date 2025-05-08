@@ -4,14 +4,80 @@ import RobotState from '@/components/home/RobotState';
 import CardState from '@/components/home/CardState';
 import CardButton from '@/components/home/CardButton';
 import { router } from 'expo-router';
+import { getSensorData } from '@/db/actions';
+import { Audio } from 'expo-av';
+
+interface SensorDataRecord {
+  temperature : string,
+  valeur_gaz : string,
+  humidite : string,
+  gaz_detecte : string
+}
 
 export default function HomeScreen() {
-  const [sensorValues, setSensorValues] = useState({
-    temperature: 82,
-    humidity: 82,
-    smoke: 82,
-    gas: 82
+
+  useEffect(()=>{
+    setInterval(async()=>{
+      const { sensorData, error } = await getSensorData()
+      if (error) {
+        console.log(error)
+      } else if (sensorData) {
+        setSensorValues(sensorData)
+      }
+    },2000)
+  },[])
+
+  const [sensorValues, setSensorValues] = useState<SensorDataRecord>({
+    temperature: '0',
+    humidite: '0',
+    gaz_detecte: '0',
+    valeur_gaz: '0'
   });
+
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isSoundLoaded, setIsSoundLoaded] = useState(false);
+
+  const playSound = async () => {
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+      }
+      
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        require('@/assets/sounds/alert_sound.mp3'),
+        { shouldPlay: true }
+      );
+      setSound(newSound);
+      setIsSoundLoaded(true);
+    } catch (error) {
+      console.error('Error playing sound:', error);
+      setIsSoundLoaded(false);
+    }
+  }
+
+  const stopSound = async () => {
+    try {
+      if (sound && isSoundLoaded) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+        setIsSoundLoaded(false);
+      }
+    } catch (error) {
+      console.error('Error stopping sound:', error);
+    } finally {
+      setSound(null);
+      setIsSoundLoaded(false);
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (sound && isSoundLoaded) {
+        sound.stopAsync().catch(console.error);
+        sound.unloadAsync().catch(console.error);
+      }
+    };
+  }, [sound, isSoundLoaded]);
 
   const thresholds = {
     temperature: 75,  
@@ -23,13 +89,13 @@ export default function HomeScreen() {
   const blinkAnim = useRef(new Animated.Value(0)).current;
   
   const hasAlert = 
-    sensorValues.temperature > thresholds.temperature ||
-    sensorValues.humidity > thresholds.humidity ||
-    sensorValues.smoke > thresholds.smoke ||
-    sensorValues.gas > thresholds.gas;
+    parseInt(sensorValues.temperature) > thresholds.temperature ||
+    parseInt(sensorValues.humidite) > thresholds.humidity ||
+    parseInt(sensorValues.gaz_detecte) > thresholds.smoke ||
+    parseInt(sensorValues.valeur_gaz) > thresholds.gas;
 
   useEffect(() => {
-    let blinkAnimation;
+    let blinkAnimation: Animated.CompositeAnimation | null = null;
     
     if (hasAlert) {
       blinkAnimation = Animated.loop(
@@ -48,17 +114,26 @@ export default function HomeScreen() {
           })
         ])
       );
-      
       blinkAnimation.start();
+
+      playSound();
+
+      const timeoutId = setTimeout(() => {
+        stopSound();
+        router.replace('/online');
+      }, 4000);
+
+      return () => {
+        if (blinkAnimation) {
+          blinkAnimation.stop();
+        }
+        clearTimeout(timeoutId);
+        stopSound();
+      };
     } else {
+      stopSound();
       blinkAnim.setValue(0);
     }
-    
-    return () => {
-      if (blinkAnimation) {
-        blinkAnimation.stop();
-      }
-    };
   }, [hasAlert]);
 
   const animatedBackgroundColor = blinkAnim.interpolate({
@@ -84,24 +159,24 @@ export default function HomeScreen() {
           <CardState 
             ElementSensorName='Temperature' 
             Value={sensorValues.temperature + '°C'} 
-            State={sensorValues.temperature <= thresholds.temperature} 
+            State={parseInt(sensorValues.temperature) <= thresholds.temperature} 
           />
           <CardState 
             ElementSensorName='Humidity' 
-            Value={sensorValues.humidity + '%'} 
-            State={sensorValues.humidity <= thresholds.humidity} 
+            Value={sensorValues.humidite + '%'} 
+            State={parseInt(sensorValues.humidite) <= thresholds.humidity} 
           />
         </View>
         <View style={styles.sensorRow}>
           <CardState 
             ElementSensorName='Smoke' 
-            Value={sensorValues.smoke + '%'} 
-            State={sensorValues.smoke <= thresholds.smoke} 
+            Value={sensorValues.gaz_detecte + '%'} 
+            State={parseInt(sensorValues.gaz_detecte) <= thresholds.smoke} 
           />
           <CardState 
             ElementSensorName='Gas' 
-            Value={sensorValues.gas + 'ppm'} 
-            State={sensorValues.gas <= thresholds.gas} 
+            Value={sensorValues.valeur_gaz + 'ppm'} 
+            State={parseInt(sensorValues.valeur_gaz) <= thresholds.gas} 
           />
         </View>
       </View>

@@ -10,11 +10,19 @@ import { Video, ResizeMode } from 'expo-av';
 import {CONFIG} from '@/config'
 import {BlurView} from 'expo-blur'
 import { router } from "expo-router";
-import { addHistoric } from "@/db/actions";
+import { addHistoric, getSensorData } from "@/db/actions";
 interface EnvConfig {
   SERVER_BASE_URL: string;
   ESP32_CAMERA_STREAM_URL: string;
 }
+
+interface SensorDataRecord {
+  temperature : string,
+  valeur_gaz : string,
+  humidite : string,
+  gaz_detecte : string
+}
+
 
 interface AnalysisResult {
   video_id: string;
@@ -40,65 +48,72 @@ export default function Online() {
   const videoRef = useRef<Video>(null);
   const webViewRef = useRef<WebView>(null);
   const [webViewUrl, setWebViewUrl] = useState(CAMERA_ESP_LINK);
+  const [sensorValues, setSensorValues] = useState<SensorDataRecord>({
+    temperature: '0',
+    humidite: '0',
+    gaz_detecte: '0',
+    valeur_gaz: '0'
+  });
   
-  // States for recording workflow
   const [isRecording, setIsRecording] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [recordingInProgress, setRecordingInProgress] = useState(false);
   const [recordingFinished, setRecordingFinished] = useState(false);
   const [showAnalysePrompt, setShowAnalysePrompt] = useState(false);
   
-  // Reference to store the polling interval
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const envConfig = Constants.expoConfig?.extra as EnvConfig;
 
-  // Server URL configuration
   const SERVER_URL = CONFIG.SERVER_RECORDING_SERVICE_LINK
 
+
+
+  useEffect(()=>{
+    setInterval(async()=>{
+      const { sensorData, error } = await getSensorData()
+      if (error) {
+        console.log(error)
+      } else if (sensorData) {
+        setSensorValues(sensorData)
+      }
+    },2000)
+  },[])
+
   const settingUrlWebView = () => {
-    // Reset web view URL
     setWebViewUrl(CAMERA_ESP_LINK);
     
-    // Reset recording states
     setIsRecording(false);
     setCountdown(null);
     setRecordingInProgress(false);
     setRecordingFinished(false);
     setShowAnalysePrompt(false);
     
-    // Reset analysis states
     setIsAnalyzing(false);
     setAnalysisProgress(0);
     setShowAnalysisResult(false);
     setAnalysisResult(null);
     
-    // Reset error states
     setShowError(false);
     setErrorMessage("");
     
-    // Reset video states
     setShowProcessedVideo(false);
     setProcessedVideoUri(null);
     
-    // Reload the WebView if it exists
     if (webViewRef.current) {
       webViewRef.current.reload();
     }
     
-    // Clear any existing polling interval
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
     
-    // Optional: Reset loading state if needed
     setIsLoading(true);
     
     console.log("App state completely reset");
   };
 
-  // Countdown effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown !== null && countdown > 0) {
@@ -110,7 +125,6 @@ export default function Online() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Start the recording on the server and set up polling
   const startRecordingOnServer = async () => {
     setRecordingInProgress(true);
     
@@ -122,7 +136,6 @@ export default function Online() {
         throw new Error(`Server returned ${response.status}`);
       }
       
-      // Start polling for recording status
       startPollingRecordingStatus();
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -130,7 +143,6 @@ export default function Online() {
     }
   };
 
-  // Handle recording errors
   const handleRecordingError = () => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -142,7 +154,6 @@ export default function Online() {
     alert("Erreur d'enregistrement. Veuillez réessayer.");
   };
 
-  // Polling function to check recording status
   const startPollingRecordingStatus = () => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -422,17 +433,53 @@ export default function Online() {
       <Modal
         visible={isAnalyzing}
         transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowAnalysisResult(false)}
+        animationType="fade"
+        onRequestClose={() => {}}
       >
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1E6091" />
-            <Text style={styles.loadingText}>Analyse en cours...</Text>
+            <View style={styles.loadingHeader}>
+              <Text style={styles.loadingTitle}>Analyse en cours</Text>
+            </View>
+            
+            <View style={styles.loadingIconContainer}>
+              <ActivityIndicator size="large" color="#1E6091" />
+            </View>
+            
+            <Text style={styles.loadingText}>
+              {analysisProgress < 30 
+                ? "Préparation de la vidéo..." 
+                : analysisProgress < 70 
+                  ? "Analyse des mouvements..." 
+                  : "Finalisation des résultats..."}
+            </Text>
+            
             <View style={styles.progressBarContainer}>
               <View style={[styles.progressBar, { width: `${analysisProgress}%` }]} />
             </View>
-            <Text style={styles.progressText}>{analysisProgress}%</Text>
+            
+            <View style={styles.progressInfoContainer}>
+              <Text style={styles.progressText}>{analysisProgress}%</Text>
+              <Text style={styles.timeEstimateText}>Temps estimé: {Math.max(0, Math.round(60 - (analysisProgress * 0.6)))}s</Text>
+            </View>
+            
+            <View style={styles.messageContainer}>
+              <Ionicons name="information-circle-outline" size={20} color="#1E6091" />
+              <Text style={styles.infoText}>L'analyse peut prendre environ 1 minute.{'\n'}Pas d'inquiétude, nous travaillons pour vous.</Text>
+            </View>
+            
+            {analysisProgress > 20 && (
+              <View style={styles.tipContainer}>
+                <Text style={styles.tipTitle}>Le saviez-vous ?</Text>
+                <Text style={styles.tipText}>
+                  {[
+                    "Notre IA analyse plus de 30 points de repère corporels pour détecter les chutes.",
+                    "Une détection rapide augmente de 80% les chances de rétablissement après une chute.",
+                    "Votre vidéo est traitée localement et en toute sécurité."
+                  ][Math.floor(analysisProgress / 33) % 3]}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -516,8 +563,8 @@ export default function Online() {
             </View>
       
             <View style={styles.statsContainer}>
-              <OnlineCardState state={true} text="Tempeature" value="50°C" />
-              <OnlineCardState state={false} text="Smoke/Gaz" value="3% / 12ppm" />
+              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Tempeature" value={sensorValues.temperature + '°C'} />
+              <OnlineCardState state={parseInt(sensorValues.valeur_gaz) < 50} text="Smoke/Gaz" value={sensorValues.valeur_gaz + 'ppm'}/>
             </View>
       
             <CardButton
@@ -587,7 +634,6 @@ export default function Online() {
               <ButtonFuncs 
                 icon="activity" 
                 text="Analyse" 
-                // disabled={!isConnected || isAnalyzing}
                 onPress={handleAnalyse}
               />
               <ButtonFuncs 
@@ -604,8 +650,8 @@ export default function Online() {
             </View>
       
             <View style={styles.statsContainer}>
-              <OnlineCardState state={true} text="Tempeature" value="50°C" />
-              <OnlineCardState state={false} text="Smoke/Gaz" value="3% / 12ppm" />
+              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Tempeature" value={sensorValues.temperature + '°C'} />
+              <OnlineCardState state={parseInt(sensorValues.valeur_gaz) < 50} text="Smoke/Gaz" value={sensorValues.valeur_gaz + 'ppm'}/>
             </View>
       
             <CardButton
@@ -877,5 +923,129 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 8,
     marginTop: 20,
+  },
+
+
+
+
+
+
+
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 16,
+    alignItems: "center",
+    width: "90%",
+    maxWidth: 400,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  loadingHeader: {
+    width: "100%",
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    paddingBottom: 10,
+  },
+  loadingTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1E6091",
+    textAlign: "center",
+  },
+  loadingIconContainer: {
+    position: "relative",
+    marginBottom: 15,
+    height: 60,
+    justifyContent: "center",
+  },
+  checkIconContainer: {
+    position: "absolute",
+    right: -15,
+    bottom: 0,
+    backgroundColor: "white",
+    borderRadius: 20,
+  },
+  loadingText: {
+    color: "#1E6091",
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  progressBarContainer: {
+    width: "100%",
+    height: 10,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#1E6091",
+    borderRadius: 5,
+  },
+  progressInfoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 5,
+    marginBottom: 15,
+  },
+  progressText: {
+    color: "#1E6091",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  timeEstimateText: {
+    color: "#475569",
+    fontSize: 14,
+  },
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#EFF6FF",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    width: "100%",
+  },
+  infoText: {
+    color: "#1E6091",
+    fontSize: 13,
+    marginLeft: 8,
+    flex: 1,
+    lineHeight:19
+  },
+  tipContainer: {
+    width: "100%",
+    backgroundColor: "#F0FDF4",
+    borderRadius: 8,
+    padding: 12,
+  },
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#047857",
+    marginBottom: 4,
+  },
+  tipText: {
+    fontSize: 13,
+    color: "#065F46",
+    lineHeight: 18,
   }
 });
