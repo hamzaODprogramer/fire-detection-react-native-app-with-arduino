@@ -16,15 +16,25 @@ interface SensorDataRecord {
 
 export default function HomeScreen() {
 
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isSoundLoaded, setIsSoundLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   useEffect(()=>{
-    setInterval(async()=>{
-      const { sensorData, error } = await getSensorData()
-      if (error) {
-        console.log(error)
-      } else if (sensorData) {
-        setSensorValues(sensorData)
-      }
-    },2000)
+    setLoading(true)
+    const fetchData = async () => {
+      const interval = setInterval(async()=>{
+        const { sensorData, error } = await getSensorData()
+        if (error) {
+          console.log(error)
+        } else if (sensorData) {
+          setSensorValues(sensorData)
+          setLoading(false)
+        }
+      },2000)
+      return () => clearInterval(interval)
+    }
+    fetchData()
   },[])
 
   const [sensorValues, setSensorValues] = useState<SensorDataRecord>({
@@ -34,8 +44,7 @@ export default function HomeScreen() {
     valeur_gaz: '0'
   });
 
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isSoundLoaded, setIsSoundLoaded] = useState(false);
+  
 
   const playSound = async () => {
     try {
@@ -157,11 +166,13 @@ export default function HomeScreen() {
       <View style={styles.sensorGrid}>
         <View style={styles.sensorRow}>
           <CardState 
+            loading={loading}
             ElementSensorName='Temperature' 
             Value={sensorValues.temperature + '°C'} 
             State={parseInt(sensorValues.temperature) <= thresholds.temperature} 
           />
           <CardState 
+            loading={loading}
             ElementSensorName='Humidity' 
             Value={sensorValues.humidite + '%'} 
             State={parseInt(sensorValues.humidite) <= thresholds.humidity} 
@@ -169,11 +180,13 @@ export default function HomeScreen() {
         </View>
         <View style={styles.sensorRow}>
           <CardState 
+            loading={loading}
             ElementSensorName='Smoke' 
             Value={sensorValues.gaz_detecte + '%'} 
             State={parseInt(sensorValues.gaz_detecte) <= thresholds.smoke} 
           />
           <CardState 
+            loading={loading}
             ElementSensorName='Gas' 
             Value={sensorValues.valeur_gaz + 'ppm'} 
             State={parseInt(sensorValues.valeur_gaz) <= thresholds.gas} 

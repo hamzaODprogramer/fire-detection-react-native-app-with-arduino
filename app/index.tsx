@@ -19,12 +19,12 @@ const EmailAuthPage = () => {
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
-      setErrorMessage('Veuillez remplir tous les champs requis');
+      setErrorMessage('Please fill in all required fields');
       return;
     }
 
     if (isSignUp && !displayName) {
-      setErrorMessage('Veuillez entrer votre nom');
+      setErrorMessage('Please enter your name');
       return;
     }
 
@@ -44,15 +44,15 @@ const EmailAuthPage = () => {
         let message = 'Username or password incorrect';
         
         if (result.error.code === 'auth/invalid-email') {
-          message = 'Adresse email invalide';
+          message = 'Invalid email address';
         } else if (result.error.code === 'auth/user-not-found') {
-          message = 'Aucun compte associé à cette adresse email';
+          message = 'No account associated with this email address';
         } else if (result.error.code === 'auth/wrong-password') {
-          message = 'Mot de passe incorrect';
+          message = 'Incorrect password';
         } else if (result.error.code === 'auth/weak-password') {
-          message = 'Le mot de passe doit contenir au moins 6 caractères';
+          message = 'Password must be at least 6 characters long';
         } else if (result.error.code === 'auth/email-already-in-use') {
-          message = 'Cette adresse email est déjà utilisée';
+          message = 'This email address is already in use';
         }
         
         setErrorMessage(message);
@@ -60,7 +60,7 @@ const EmailAuthPage = () => {
         router.replace('/(tabs)');
       }
     } catch (error) {
-      setErrorMessage('Une erreur est survenue. Veuillez réessayer.');
+      setErrorMessage('An error occurred. Please try again.');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ const EmailAuthPage = () => {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#1E6091','#1e40af', '#3b82f6']}
+        colors={['#1E6091', '#1A4F7A', '#164A6F']}
         style={styles.background}
       />
       
@@ -92,24 +92,24 @@ const EmailAuthPage = () => {
                 <Text style={styles.fireText}>Fire</Text>
                 <Text style={styles.guardText}>Guard</Text>
               </Text>
-              <Text style={styles.tagline}>Protection intelligente contre les incendies</Text>
+              <Text style={styles.tagline}>Intelligent fire protection</Text>
             </View>
 
             <View style={styles.card}>
-              <Text style={styles.title}>{isSignUp ? 'Créer un compte' : 'Bienvenue'}</Text>
+              <Text style={styles.title}>{isSignUp ? 'Create an account' : 'Welcome'}</Text>
               <Text style={styles.subtitle}>
                 {isSignUp 
-                  ? 'Inscrivez-vous pour protéger votre espace contre les incendies'
-                  : 'Connectez-vous pour accéder à votre tableau de bord de sécurité'
+                  ? 'Sign up to protect your space against'
+                  : 'Sign in to access your security dashboard'
                 }
               </Text>
               
               {isSignUp && (
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Nom</Text>
+                  <Text style={styles.inputLabel}>Name</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Votre nom"
+                    placeholder="Your name"
                     value={displayName}
                     onChangeText={setDisplayName}
                     autoCapitalize="words"
@@ -121,7 +121,7 @@ const EmailAuthPage = () => {
                 <Text style={styles.inputLabel}>Email</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="votre@email.com"
+                  placeholder="your@email.com"
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -130,22 +130,21 @@ const EmailAuthPage = () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Mot de passe</Text>
+                <Text style={styles.inputLabel}>Password</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Mot de passe"
+                  placeholder="Password"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                 />
               </View>
 
-
               {errorMessage ? (
                 <Text style={styles.errorText}>{errorMessage}</Text>
               ) : null}
               
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.authButton} 
                 onPress={handleEmailAuth}
                 activeOpacity={0.8}
@@ -155,27 +154,27 @@ const EmailAuthPage = () => {
                   <ActivityIndicator color="#ffffff" />
                 ) : (
                   <Text style={styles.authButtonText}>
-                    {isSignUp ? 'S\'inscrire' : 'Se connecter'}
+                    {isSignUp ? 'Sign up' : 'Sign in'}
                   </Text>
                 )}
               </TouchableOpacity>
               
               <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                  {isSignUp ? 'Vous avez déjà un compte?' : 'Vous n\'avez pas de compte?'}
+                  {isSignUp ? 'Already have an account?' : 'Don\'t have an account?'}
                 </Text>
                 <TouchableOpacity onPress={toggleAuthMode}>
                   <Text style={styles.signupLink}>
-                    {isSignUp ? 'Se connecter' : 'S\'inscrire'}
+                    {isSignUp ? 'Sign in' : 'Sign up'}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
             
             <Text style={styles.disclaimer}>
-              En vous connectant, vous acceptez nos{' '}
-              <Text style={styles.link}>Conditions d'utilisation</Text> et notre{' '}
-              <Text style={styles.link}>Politique de confidentialité</Text>
+              By signing in, you agree to our{' '}
+              <Text style={styles.link}>Terms of Use</Text> and{' '}
+              <Text style={styles.link}>Privacy Policy</Text>
             </Text>
           </ScrollView>
         </TouchableWithoutFeedback>

@@ -107,12 +107,15 @@ export const signInWithEmail = async (email: string, password: string) => {
 
 export const logOut = async () => {
   try {
-    await signOut(auth);
-    
+    // First clear the user ID from storage
     await clearUserId();
+    
+    // Then sign out from Firebase
+    await signOut(auth);
     
     return { success: true };
   } catch (error) {
+    console.error('Logout error:', error);
     return { error };
   }
 };

@@ -103,9 +103,9 @@ export default function Historic() {
                   key={index}
                   title={item.state ? 'No danger detected' : 'A person in danger has been discovered'}
                   date={formatDateTime(item.date)}
-                  alert={item.temperature > item.gaz ? 
+                  alert={item.temperature >= item.gaz ? 
                     ("Temperature : " + item.temperature + "°C detected") : 
-                    ("Gaz : " + item.gaz + "ppm detected")}
+                    ("Gas : " + item.gaz + "ppm detected")}
                   type={item.state ? 'normal' : 'danger'}
                 />
               ))

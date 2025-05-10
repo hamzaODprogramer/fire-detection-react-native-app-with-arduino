@@ -151,7 +151,7 @@ export default function Online() {
     
     setRecordingInProgress(false);
     settingUrlWebView();
-    alert("Erreur d'enregistrement. Veuillez réessayer.");
+    alert("Recording error. Please try again.");
   };
 
   const startPollingRecordingStatus = () => {
@@ -257,20 +257,20 @@ export default function Online() {
           })
         }
         await addHistoric({
-          state : (data.status === 'InDanger' ? false : true),
-          date : new Date().toISOString(),
-          gaz : 50,
-          temperature : 20,
-          time : new Date().toISOString(),
+          state: data.status !== 'InDanger',
+          date: new Date().toISOString(),
+          gaz: Number(sensorValues.valeur_gaz),
+          temperature: Number(sensorValues.temperature),
+          time: new Date().toISOString(),
           createdAt: new Date().toISOString()
         })
       } else {
-        setErrorMessage(data.message || "Erreur lors de l'analyse de la vidéo");
+        setErrorMessage(data.message || "Video analysis error");
         setShowError(true);
       }
     } catch (error) {
       console.error('Error analyzing video:', error);
-      setErrorMessage("Erreur lors de l'analyse de la vidéo. Veuillez vérifier que le serveur est en cours d'exécution.");
+      setErrorMessage("Video analysis error. Please check if the server is running.");
       setShowError(true);
     } finally {
       setIsAnalyzing(false);
@@ -284,6 +284,8 @@ export default function Online() {
       params : {
         videoUri : CONFIG.SERVER_HANDLING_VIDEO_SERVICE_LINK + `/get_handled_video/${analysisResult?.video_id}`,
         status : String(analysisResult?.status),
+        temperature : sensorValues.temperature,
+        gaz : sensorValues.valeur_gaz
       }
     })
     // setShowProcessedVideo(true);
@@ -324,7 +326,7 @@ export default function Online() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Résultat de l'analyse</Text>
+              <Text style={styles.modalTitle}>Analysis Result</Text>
               <TouchableOpacity 
                 style={styles.closeButton}
                 onPress={() => setShowAnalysisResult(false)}
@@ -338,12 +340,12 @@ export default function Online() {
                 <Ionicons name="checkmark-circle" size={48} color="#10B981" />
               </View>
               
-              <Text style={styles.resultTitle}>Analyse réussie!</Text>
+              <Text style={styles.resultTitle}>Analysis Successful!</Text>
               
               <View style={styles.resultDetails}>
                 <View style={styles.detailRow}>
                   <Ionicons name="time-outline" size={20} color="#1E6091" />
-                  <Text style={styles.detailText}>Durée: {analysisResult?.duration?.toFixed(2) || '0.00'} secondes</Text>
+                  <Text style={styles.detailText}>Duration: {analysisResult?.duration?.toFixed(2) || '0.00'} seconds</Text>
                 </View>
                 <View style={styles.detailRow}>
                   <Ionicons name="videocam-outline" size={20} color="#1E6091" />
@@ -355,7 +357,7 @@ export default function Online() {
                 style={styles.viewVideoButton}
                 onPress={handleViewProcessedVideo}
               >
-                <Text style={styles.viewVideoText}>Voir la resultats</Text>
+                <Text style={styles.viewVideoText}>View Results</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -371,7 +373,7 @@ export default function Online() {
         <View style={styles.modalOverlay}>
           <View style={styles.videoModalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Vidéo analysée</Text>
+              <Text style={styles.modalTitle}>Analyzed Video</Text>
               <TouchableOpacity 
                 style={styles.closeButton}
                 onPress={handleCloseProcessedVideo}
@@ -401,7 +403,7 @@ export default function Online() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Erreur</Text>
+              <Text style={styles.modalTitle}>Error</Text>
               <TouchableOpacity 
                 style={styles.closeButton}
                 onPress={() => setShowError(false)}
@@ -424,7 +426,7 @@ export default function Online() {
                   handleAnalyse();
                 }}
               >
-                <Text style={styles.retryText}>Réessayer</Text>
+                <Text style={styles.retryText}>Retry</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -439,7 +441,7 @@ export default function Online() {
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
             <View style={styles.loadingHeader}>
-              <Text style={styles.loadingTitle}>Analyse en cours</Text>
+              <Text style={styles.loadingTitle}>Analysis in Progress</Text>
             </View>
             
             <View style={styles.loadingIconContainer}>
@@ -448,10 +450,10 @@ export default function Online() {
             
             <Text style={styles.loadingText}>
               {analysisProgress < 30 
-                ? "Préparation de la vidéo..." 
+                ? "Preparing video..." 
                 : analysisProgress < 70 
-                  ? "Analyse des mouvements..." 
-                  : "Finalisation des résultats..."}
+                  ? "Analyzing movements..." 
+                  : "Finalizing results..."}
             </Text>
             
             <View style={styles.progressBarContainer}>
@@ -460,22 +462,22 @@ export default function Online() {
             
             <View style={styles.progressInfoContainer}>
               <Text style={styles.progressText}>{analysisProgress}%</Text>
-              <Text style={styles.timeEstimateText}>Temps estimé: {Math.max(0, Math.round(60 - (analysisProgress * 0.6)))}s</Text>
+              <Text style={styles.timeEstimateText}>Estimated time: {Math.max(0, Math.round(60 - (analysisProgress * 0.6)))}s</Text>
             </View>
             
             <View style={styles.messageContainer}>
               <Ionicons name="information-circle-outline" size={20} color="#1E6091" />
-              <Text style={styles.infoText}>L'analyse peut prendre environ 1 minute.{'\n'}Pas d'inquiétude, nous travaillons pour vous.</Text>
+              <Text style={styles.infoText}>Analysis may take about 1 minute.{'\n'}Don't worry, we're working for you.</Text>
             </View>
             
             {analysisProgress > 20 && (
               <View style={styles.tipContainer}>
-                <Text style={styles.tipTitle}>Le saviez-vous ?</Text>
+                <Text style={styles.tipTitle}>Did you know?</Text>
                 <Text style={styles.tipText}>
                   {[
-                    "Notre IA analyse plus de 30 points de repère corporels pour détecter les chutes.",
-                    "Une détection rapide augmente de 80% les chances de rétablissement après une chute.",
-                    "Votre vidéo est traitée localement et en toute sécurité."
+                    "Our AI analyzes more than 30 body landmarks to detect falls.",
+                    "Quick detection increases recovery chances by 80% after a fall.",
+                    "Your video is processed locally and securely."
                   ][Math.floor(analysisProgress / 33) % 3]}
                 </Text>
               </View>
@@ -496,13 +498,13 @@ export default function Online() {
                       ) : recordingInProgress ? (
                         <View style={styles.promptContainer}>
                           <ActivityIndicator size="large" color="#1E6091" style={styles.loadingIndicator} />
-                          <Text style={styles.promptText}>Enregistrement en cours...</Text>
-                          <Text style={styles.promptSubText}>Veuillez patienter</Text>
+                          <Text style={styles.promptText}>Recording in progress...</Text>
+                          <Text style={styles.promptSubText}>Please wait</Text>
                         </View>
                       ) : showAnalysePrompt ? (
                         <View style={styles.promptContainer}>
-                          <Text style={styles.promptText}>Enregistrement terminé</Text>
-                          <Text style={styles.promptSubText}>Veuillez cliquer sur le bouton "Analyse"</Text>
+                          <Text style={styles.promptText}>Recording complete</Text>
+                          <Text style={styles.promptSubText}>Please click the "Analyze" button</Text>
                         </View>
                       ) : null}
                     </View>
@@ -528,15 +530,15 @@ export default function Online() {
                 </>
               ) : (
                 <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>Caméra non connectée</Text>
+                  <Text style={styles.errorText}>Camera not connected</Text>
                   <Text style={styles.errorSubText}>
-                    Veuillez vérifier la connexion et réessayer
+                    Please check the connection and try again
                   </Text>
                   <TouchableOpacity
                     style={styles.retryButton}
                     onPress={retryConnection}
                   >
-                    <Text style={styles.retryText}>Réessayer</Text>
+                    <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -545,8 +547,7 @@ export default function Online() {
             <View style={styles.controlsContainer}>
               <ButtonFuncs 
                 icon="activity" 
-                text="Analyse" 
-                // disabled={!isConnected || isAnalyzing}
+                text="Analyze" 
                 onPress={handleAnalyse}
               />
               <ButtonFuncs 
@@ -563,14 +564,15 @@ export default function Online() {
             </View>
       
             <View style={styles.statsContainer}>
-              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Tempeature" value={sensorValues.temperature + '°C'} />
+              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Temperature" value={sensorValues.temperature + '°C'} />
               <OnlineCardState state={parseInt(sensorValues.valeur_gaz) < 50} text="Smoke/Gaz" value={sensorValues.valeur_gaz + 'ppm'}/>
             </View>
       
             <CardButton
               style={styles.alertButton}
-              text="ALERT D'URGENCE"
+              text="EMERGENCY ALERT"
               color="#F28C38"
+              onPress={() => Linking.openURL('tel:0688785') }
             />
           </BlurView>
         : <View style={styles.container}>
@@ -584,13 +586,13 @@ export default function Online() {
                       ) : recordingInProgress ? (
                         <View style={styles.promptContainer}>
                           <ActivityIndicator size="large" color="#1E6091" style={styles.loadingIndicator} />
-                          <Text style={styles.promptText}>Enregistrement en cours...</Text>
-                          <Text style={styles.promptSubText}>Veuillez patienter</Text>
+                          <Text style={styles.promptText}>Recording in progress...</Text>
+                          <Text style={styles.promptSubText}>Please wait</Text>
                         </View>
                       ) : showAnalysePrompt ? (
                         <View style={styles.promptContainer}>
-                          <Text style={styles.promptText}>Enregistrement terminé</Text>
-                          <Text style={styles.promptSubText}>Veuillez cliquer sur le bouton "Analyse"</Text>
+                          <Text style={styles.promptText}>Recording complete</Text>
+                          <Text style={styles.promptSubText}>Please click the "Analyze" button</Text>
                         </View>
                       ) : null}
                     </View>
@@ -616,15 +618,15 @@ export default function Online() {
                 </>
               ) : (
                 <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>Caméra non connectée</Text>
+                  <Text style={styles.errorText}>Camera not connected</Text>
                   <Text style={styles.errorSubText}>
-                    Veuillez vérifier la connexion et réessayer
+                    Please check the connection and try again
                   </Text>
                   <TouchableOpacity
                     style={styles.retryButton}
                     onPress={retryConnection}
                   >
-                    <Text style={styles.retryText}>Réessayer</Text>
+                    <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -633,7 +635,7 @@ export default function Online() {
             <View style={styles.controlsContainer}>
               <ButtonFuncs 
                 icon="activity" 
-                text="Analyse" 
+                text="Analyze" 
                 onPress={handleAnalyse}
               />
               <ButtonFuncs 
@@ -650,13 +652,13 @@ export default function Online() {
             </View>
       
             <View style={styles.statsContainer}>
-              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Tempeature" value={sensorValues.temperature + '°C'} />
+              <OnlineCardState state={parseInt(sensorValues.temperature) < 75} text="Temperature" value={sensorValues.temperature + '°C'} />
               <OnlineCardState state={parseInt(sensorValues.valeur_gaz) < 50} text="Smoke/Gaz" value={sensorValues.valeur_gaz + 'ppm'}/>
             </View>
       
             <CardButton
               style={styles.alertButton}
-              text="ALERT D'URGENCE"
+              text="EMERGENCY ALERT"
               color="#F28C38"
               onPress={() => Linking.openURL('tel:0688785') }
             />
@@ -924,13 +926,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 20,
   },
-
-
-
-
-
-
-
   loadingOverlay: {
     position: "absolute",
     top: 0,

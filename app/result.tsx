@@ -49,17 +49,16 @@ const FireAlertResults: React.FC = () => {
   }, []);
 
   const handleShare = () => {
-    Alert.alert("Partage d'alerte", "L'alerte a été partagée avec vos contacts d'urgence.");
+    Alert.alert("Share Alert", "The alert has been shared with your emergency contacts.");
   };
-
 
   const handleEmergencyCall = () => {
     Alert.alert(
-      "Appel d'urgence",
-      "Voulez-vous contacter les services d'urgence?",
+      "Emergency Call",
+      "Do you want to contact emergency services?",
       [
-        { text: "Annuler", style: "cancel" },
-        { text: "Appeler", onPress: () => Alert.alert("Appel en cours...") }
+        { text: "Cancel", style: "cancel" },
+        { text: "Call", onPress: () => Alert.alert("Calling...") }
       ]
     );
   };
@@ -68,11 +67,11 @@ const FireAlertResults: React.FC = () => {
   
   const headerBackgroundColor = isDanger ? '#DC2626' : '#10B981';
   const headerIcon = isDanger ? 'alert-triangle' : 'check-circle';
-  const headerTitle = isDanger ? 'ALERTE INCENDIE' : 'AUCUN DANGER DÉTECTÉ';
+  const headerTitle = isDanger ? 'FIRE ALERT' : 'NO DANGER DETECTED';
   const severityBadgeColor = isDanger ? '#FEE2E2' : '#D1FAE5';
   const severityBorderColor = isDanger ? '#DC2626' : '#10B981';
   const severityTextColor = isDanger ? '#991B1B' : '#065F46';
-  const severityText = isDanger ? 'CRITIQUE' : 'NORMAL';
+  const severityText = isDanger ? 'CRITICAL' : 'NORMAL';
   const progressBarColor = isDanger ? '#DC2626' : '#10B981';
   const emergencyButtonColor = isDanger ? '#DC2626' : '#6B7280';
   const emergencyButtonShadowColor = isDanger ? "#DC2626" : "#6B7280";
@@ -92,7 +91,7 @@ const FireAlertResults: React.FC = () => {
         <View style={styles.headerTimestamp}>
           <Icon name="clock" size={14} color="rgba(255,255,255,0.8)" />
           <Text style={styles.timestampText}>
-            Détecté il y a {60} {60 > 1 ? 'secs' : 'sec'}
+            Detected {60} {60 > 1 ? 'secs' : 'sec'} ago
           </Text>
         </View>
       </View>
@@ -116,7 +115,7 @@ const FireAlertResults: React.FC = () => {
       
       <View style={styles.analysisCard}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Analyse de l'incident</Text>
+          <Text style={styles.cardTitle}>Incident Analysis</Text>
           <View style={[styles.severityBadge, { 
             backgroundColor: severityBadgeColor,
             borderLeftColor: severityBorderColor
@@ -129,14 +128,14 @@ const FireAlertResults: React.FC = () => {
         
         <View style={styles.metricContainer}>
           <View style={styles.metricLabelRow}>
-            <Text style={styles.metricLabel}>Température</Text>
-            <Text style={styles.metricValue}>{80}°C</Text>
+            <Text style={styles.metricLabel}>Temperature</Text>
+            <Text style={styles.metricValue}>{params.temperature}°C</Text>
           </View>
           <View style={styles.progressBarBg}>
             <View style={[
               styles.progressBar, 
               { 
-                width: isDanger ? '75%' : '30%',
+                width: `${params.temperature as unknown as number}%`,
                 backgroundColor: progressBarColor 
               }
             ]} />
@@ -145,14 +144,14 @@ const FireAlertResults: React.FC = () => {
         
         <View style={styles.metricContainer}>
           <View style={styles.metricLabelRow}>
-            <Text style={styles.metricLabel}>Niveau de gaz</Text>
-            <Text style={styles.metricValue}>{50}%</Text>
+            <Text style={styles.metricLabel}>Gas Level</Text>
+            <Text style={styles.metricValue}>{params.gaz}%</Text>
           </View>
           <View style={styles.progressBarBg}>
             <View style={[
               styles.progressBar, 
               { 
-                width: `${9}%`,
+                width: `${params.gaz as unknown as number}%`,
                 backgroundColor: progressBarColor 
               }
             ]} />
@@ -172,25 +171,25 @@ const FireAlertResults: React.FC = () => {
           { color: isDanger ? "#991B1B" : "#065F46" }
         ]}>
           {isDanger 
-            ? "Un incendie a été détecté. Veuillez évacuer immédiatement la zone et contacter les services d'urgence." 
-            : "Aucun incendie n'a été détecté. La zone est sécurisée."}
+            ? "A fire has been detected. Please evacuate the area immediately and contact emergency services." 
+            : "No fire detected. The area is secure."}
         </Text>
       </View>
 
       {isDanger && (
         <View style={styles.safetyInstructionsContainer}>
-          <Text style={styles.safetyInstructionsTitle}>Instructions de sécurité :</Text>
+          <Text style={styles.safetyInstructionsTitle}>Safety Instructions:</Text>
           <View style={styles.safetyInstruction}>
             <Icon name="log-out" size={20} color="#991B1B" />
-            <Text style={styles.safetyInstructionText}>Évacuez le bâtiment calmement</Text>
+            <Text style={styles.safetyInstructionText}>Evacuate the building calmly</Text>
           </View>
           <View style={styles.safetyInstruction}>
             <Icon name="phone" size={20} color="#991B1B" />
-            <Text style={styles.safetyInstructionText}>Contactez les services d'urgence</Text>
+            <Text style={styles.safetyInstructionText}>Contact emergency services</Text>
           </View>
           <View style={styles.safetyInstruction}>
             <Icon name="users" size={20} color="#991B1B" />
-            <Text style={styles.safetyInstructionText}>Aidez les personnes à mobilité réduite</Text>
+            <Text style={styles.safetyInstructionText}>Help people with reduced mobility</Text>
           </View>
         </View>
       )}
@@ -201,12 +200,12 @@ const FireAlertResults: React.FC = () => {
       ]}>
         <TouchableOpacity
           style={[styles.emergencyButton, { backgroundColor: emergencyButtonColor }]}
-          onPress={() => Linking.openURL('tel:0688785')}
+          onPress={() => Linking.openURL('tel:15')}
           activeOpacity={0.8}
         >
           <Icon name="phone-call" size={24} color="#fff" style={styles.emergencyIcon} />
           <Text style={styles.emergencyText}>
-            {isDanger ? "CONTACTER LES URGENCES" : "SIGNALER UN PROBLÈME"}
+            {isDanger ? "CONTACT EMERGENCY SERVICES" : "REPORT A PROBLEM"}
           </Text>
         </TouchableOpacity>
       </Animated.View>
