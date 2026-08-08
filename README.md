@@ -30,9 +30,9 @@ Ce projet est une application mobile développée en **React Native** dans le ca
 - [React Native Paper](https://callstack.github.io/react-native-paper/) pour les composants UI
 
 ### Backend / IA
-- API Flask (hébergée sur Render ou autre)
+- API Flask
 - Modèle CNN avec TensorFlow ou PyTorch pour la détection des victimes
-- Communication via HTTP/MQTT
+- Communication via HTTP
 
 ### Base de données
 - [Firebase](https://firebase.google.com/) pour stocker les événements
